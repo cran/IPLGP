@@ -4,11 +4,23 @@
 \alias{GBLUP.fit}
 \title{Muti-trait GBLUP Model}
 \usage{
-GBLUP.fit(phe, geno = NULL, K = NULL)
+GBLUP.fit(t1, t2, t3, t4, t5, geno = NULL, K = NULL)
 }
 \arguments{
-\item{phe}{matrix. An n*t matrix contains the phenotypic values of the t target
-traits.}
+\item{t1}{vector. The phenotype of trait1. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t2}{vector. The phenotype of trait2. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t3}{vector. The phenotype of trait3. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t4}{vector. The phenotype of trait4. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t5}{vector. The phenotype of trait5. The missing value must be coded as NA.
+The length of all triat must be the same.}
 
 \item{geno}{matrix. An n*p matrix with n individuals and p markers of the
 training population. The markers must be coded as 1, 0, or -1 for alleles AA,
@@ -27,16 +39,20 @@ values of the training population.
 }
 \examples{
 # generate simulated data
-phe.test <- data.frame(trait1 = rnorm(50,30,10), trait2 = rnorm(50,10,5), trait3 = rnorm(50,20,20))
+t1 = rnorm(50,30,10)
+t2 = rnorm(50,10,5)
+t3 = rnorm(50,20,20)
+t4 = NULL
+t5 = NULL
 
 # run with the marker score matrix
 geno.test <- matrix(sample(c(1, -1), 5000, replace = TRUE), 50, 100)
-result1 <- GBLUP.fit(phe.test, geno.test)
+result1 <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
 result1
 
 # run with the genomic relationship matrix
 K.test <- geno.test\%*\%t(geno.test)/ncol(geno.test)
-result2 <- GBLUP.fit(phe.test, K = K.test)
+result2 <- GBLUP.fit(t1, t2, t3, t4, t5, K = K.test)
 result2
 }
 \references{

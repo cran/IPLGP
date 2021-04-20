@@ -4,8 +4,16 @@
 #' training population by 'mmer' from R package 'sommer'. Then, output the fitted
 #' values of the training population.
 #'
-#' @param phe matrix. An n*t matrix contains the phenotypic values of the t target
-#' traits.
+#' @param t1 vector. The phenotype of trait1. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t2 vector. The phenotype of trait2. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t3 vector. The phenotype of trait3. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t4 vector. The phenotype of trait4. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t5 vector. The phenotype of trait5. The missing value must be coded as NA.
+#' The length of all triat must be the same.
 #' @param geno matrix. An n*p matrix with n individuals and p markers of the
 #' training population. The markers must be coded as 1, 0, or -1 for alleles AA,
 #' Aa, or aa. The missing value must have been already imputed.
@@ -30,26 +38,37 @@
 #'
 #' @examples
 #' # generate simulated data
-#' phe.test <- data.frame(trait1 = rnorm(50,30,10), trait2 = rnorm(50,10,5), trait3 = rnorm(50,20,20))
+#' t1 = rnorm(50,30,10)
+#' t2 = rnorm(50,10,5)
+#' t3 = rnorm(50,20,20)
+#' t4 = NULL
+#' t5 = NULL
 #'
 #' # run with the marker score matrix
 #' geno.test <- matrix(sample(c(1, -1), 5000, replace = TRUE), 50, 100)
-#' result1 <- GBLUP.fit(phe.test, geno.test)
+#' result1 <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
 #' result1
 #'
 #' # run with the genomic relationship matrix
 #' K.test <- geno.test%*%t(geno.test)/ncol(geno.test)
-#' result2 <- GBLUP.fit(phe.test, K = K.test)
+#' result2 <- GBLUP.fit(t1, t2, t3, t4, t5, K = K.test)
 #' result2
-GBLUP.fit <- function(phe, geno = NULL, K = NULL){
+GBLUP.fit <- function(t1, t2, t3, t4, t5, geno = NULL, K = NULL){
 
-  phe <- data.frame(phe)
-  assign("pheinGBLUP", as.matrix(phe))
-  return(pheinGBLUP)
+  phetest <- c(length(t1), length(t2), length(t3), length(t4), length(t5))
+  if(length(table(phetest[phetest != 0])) != 1){
+    stop("Phenotype data error, please input number vectors with the same length.", call. = FALSE)
+  }
+
+  phe <- cbind(t1, t2, t3, t4, t5)
+  datatry <- try(phe*phe, silent=TRUE)
+  if(class(datatry)[1] == "try-error"){
+    stop("Phenotype data error, please input number vectors with the same length.", call. = FALSE)
+  }
   nt <- ncol(phe)
 
   if(is.null(geno) & is.null(K)){
-    stop("One of the arguments 'geno' and 'K' must be assigned.", call. = F)
+    stop("One of the arguments 'geno' and 'K' must be assigned.", call. = FALSE)
   }
 
   if(is.null(geno)){
@@ -60,7 +79,7 @@ GBLUP.fit <- function(phe, geno = NULL, K = NULL){
   } else {
     datatry <- try(geno%*%t(geno), silent = TRUE)
     if(class(datatry)[1] == "try-error" | length(geno[geno != 1 & geno != 0 & geno != -1]) > 0){
-      stop("Genotype data error or have not been imputed.", call. = F)
+      stop("Genotype data error or have not been imputed.", call. = FALSE)
     }
     rownames(geno) <- 1:nrow(geno)
     id <- rownames(geno)
@@ -68,25 +87,45 @@ GBLUP.fit <- function(phe, geno = NULL, K = NULL){
     diag(K0) <- 1
   }
 
-  datatry <- try(K0%*%pheinGBLUP, silent=TRUE)
+  datatry <- try(K0%*%as.matrix(phe), silent = TRUE)
   if(class(datatry)[1] == "try-error" | NA%in%K0){
-    stop("Input data error, please cheak your input data.", call. = F)
+    stop("Input data error, please cheak your input data.", call. = FALSE)
   }
 
-  dat <- data.frame(cbind(id,phe))
-  fit <- sommer::mmer(pheinGBLUP~1,
-                      random = ~sommer::vs(id, Gu = K0, Gtc = sommer::unsm(nt)),
-                      rcov = ~sommer::vs(units, Gtc = sommer::unsm(nt)),
-                      data = dat)
-
-  tol <- 10^-5
-  while(length(fit) == 0){
-    fit <- sommer::mmer(pheinGBLUP~1,
+  dat <- data.frame(id,phe)
+  if(nt == 1){
+    t1 <- c(phe)
+    fit <- sommer::mmer(t1~1,
                         random = ~sommer::vs(id, Gu = K0, Gtc = sommer::unsm(nt)),
                         rcov = ~sommer::vs(units, Gtc = sommer::unsm(nt)),
-                        data = dat,
-                        tolparinv = tol)
-    tol <- tol*10
+                        data = dat)
+
+    tol <- 10^-5
+    while(length(fit) == 0){
+      cat("Try bigger tolparinv. tolparinv:", tol, "\n")
+      fit <- sommer::mmer(t1~1,
+                          random = ~sommer::vs(id, Gu = K0, Gtc = sommer::unsm(nt)),
+                          rcov = ~sommer::vs(units, Gtc = sommer::unsm(nt)),
+                          data = dat,
+                          tolparinv = tol)
+      tol <- tol*10
+    }
+  } else {
+    fit <- sommer::mmer(cbind(t1, t2, t3, t4, t5)~1,
+                        random = ~sommer::vs(id, Gu = K0, Gtc = sommer::unsm(nt)),
+                        rcov = ~sommer::vs(units, Gtc = sommer::unsm(nt)),
+                        data = dat)
+
+    tol <- 10^-5
+    while(length(fit) == 0){
+      cat("Try bigger tolparinv. tolparinv:", tol, "\n")
+      fit <- sommer::mmer(cbind(t1, t2, t3, t4, t5)~1,
+                          random = ~sommer::vs(id, Gu = K0, Gtc = sommer::unsm(nt)),
+                          rcov = ~sommer::vs(units, Gtc = sommer::unsm(nt)),
+                          data = dat,
+                          tolparinv = tol)
+      tol <- tol*10
+    }
   }
 
   u0 <- fit$U$`u:id`
@@ -99,8 +138,8 @@ GBLUP.fit <- function(phe, geno = NULL, K = NULL){
   fitted.value <- fitted.value+matrix(fit$fitted[1,], nrow(fitted.value), nt, byrow = TRUE)
   fitted.value <- fitted.value[order(as.numeric(rownames((fitted.value)))),]
   if(!is.null(row.names(phe))){row.names(fitted.value) <- row.names(phe)}
+  fitted.value <- as.matrix(fitted.value)
 
-  rm(pheinGBLUP,envir = .GlobalEnv)
   return(fitted.value)
 }
 

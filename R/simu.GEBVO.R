@@ -2,8 +2,16 @@
 #'
 #' Identify parental lines based on GEBV-O strategy and simulate their offsprings.
 #'
-#' @param phe.t matrix. An n*t matrix denotes the phenotypic values of the
-#' training population with n individuals and t target traits.
+#' @param t1 vector. The phenotype of trait1. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t2 vector. The phenotype of trait2. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t3 vector. The phenotype of trait3. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t4 vector. The phenotype of trait4. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t5 vector. The phenotype of trait5. The missing value must be coded as NA.
+#' The length of all triat must be the same.
 #' @param geno.t matrix. An n*p matrix denotes the marker score matrix of the
 #' training population. The markers must be coded as 1, 0, or -1 for alleles
 #' AA, Aa, or aa. The missing value must have been already imputed.
@@ -15,9 +23,9 @@
 #' coded as 1, 0, or -1 for alleles AA, Aa, or aa. The missing value must have
 #' been already imputed. If geno.c is set to be NULL, the candidate population
 #' is exactly the training population.
-#' @param npl vector. A vector denotes how many parental lines with the top GEBVs
-#' will be chosen from each trait. If npl is set to be NULL, there will be 4
-#' parental lines chosen from each trait.
+#' @param npl integer. An integer indicates how many parental lines with the
+#' top GEBV index will be chosen from each trait. If npl is set to be NULL, there
+#' will be be 4 times the number of traits.
 #' @param weight vector. A vector with length t indicates the weights of target
 #' traits in selection index. If weight is set to be NULL, the equal weight will
 #' be assigned to all the target traits.
@@ -54,6 +62,10 @@
 #' @note
 #' The function output.best and output.gain can be used to summarize the result.
 #'
+#' Due to restrictions on the use of the funtion 'mmer', if an unknown error occurs
+#' during use, please try to input the phenotype data as the format shown in the
+#' example.
+#'
 #' @export
 #'
 #' @references
@@ -62,7 +74,7 @@
 #' biparental crossing via genomic prediction. PLoS ONE 15(12):e0243159.
 #'
 #' @seealso
-#' \code{\link[IPLGP]{phe.sd}}
+#' \code{\link[sommer]{mmer}}
 #' \code{\link[IPLGP]{GBLUP.fit}}
 #' \code{\link[IPLGP]{GA.Dscore}}
 #' \code{\link[IPLGP]{simu.gamete}}
@@ -74,57 +86,70 @@
 #' @examples
 #' # generate simulated data
 #' set.seed(2000)
-#' phe.test <- data.frame(trait1 = rnorm(10,30,10), trait2 = rnorm(10,10,5))
+#' t1 = rnorm(10,30,10)
+#' t2 = rnorm(10,10,5)
+#' t3 = NULL
+#' t4 = NULL
+#' t5 = NULL
 #' geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 #' marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 #' geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 #'
 #' # run and output
-#' result <- simu.GEBVO(phe.test, geno.test, marker.test, geno.candidate,
-#' nprog = 5, nsele = 10, ngen = 5, nrep = 5)
+#' result <- simu.GEBVO(t1, t2, t3, t4, t5, geno.t = geno.test, marker = marker.test,
+#' geno.c = geno.candidate, nprog = 5, nsele = 10, ngen = 5, nrep = 5)
 #' result$suggested.subset
-simu.GEBVO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, weight = NULL,
-                     direction = NULL, nprog = 50, nsele = NULL, ngen = 10, nrep = 30,
-                     console = TRUE){
+simu.GEBVO <- function(t1, t2, t3, t4, t5, geno.t, marker, geno.c = NULL, npl = NULL, weight = NULL,
+                       direction = NULL, nprog = 50, nsele = NULL, ngen = 10, nrep = 30, console = TRUE){
+
+  phetest <- c(length(t1), length(t2), length(t3), length(t4), length(t5))
+  if(length(table(phetest[phetest != 0])) != 1){
+    stop("Phenotype data error, please input number vectors with the same length.", call. = FALSE)
+  }
+
+  phe.t <- cbind(t1, t2, t3, t4, t5)
+  datatry <- try(phe.t*phe.t, silent=TRUE)
+  if(class(datatry)[1] == "try-error"){
+    stop("Phenotype data error, please input number vectors with the same length.", call. = FALSE)
+  }
 
   nt <- ncol(phe.t)
   ind.t <- nrow(phe.t)
-  if(is.null(npl)){npl <- rep(4, nt)}
+  if(is.null(npl)){npl <- 4*nt}
   if(is.null(weight)){weight <- rep(1, nt)/nt}
   if(is.null(direction)){direction <- weight/abs(weight)}
-  if(console != TRUE & console != FALSE){console <- TRUE}
+  if(!console[1] %in% c(0,1) | length(console) > 1){console <- TRUE}
 
-  n0 <- sum(npl)
-  nt <- length(npl)
-  nf1 <- choose(n0, 2)
+  markertest <- c(nrow(marker) != ncol(geno.t), NA%in%marker[,2], marker[,1] != sort(marker[,1]))
+  datatry <- try(marker[,2]%*%marker[,2], silent = TRUE)
+  if(class(datatry)[1] == "try-error" | TRUE %in% markertest){
+    stop("Marker data error, please cheak your marker data. Or the number of marker does not match the genetype data.", call. = FALSE)
+  }
+
+  datatry <- try(npl*weight*direction*nprog*nsele*ngen*nrep, silent = TRUE)
+  if(class(datatry)[1] == "try-error" | NA %in% datatry){
+    stop("Argument error, please cheak your argument.", call. = FALSE)
+  }
+
+  nt <- ncol(phe.t)
+  nf1 <- choose(npl, 2)
   if(is.null(nsele)){nsele <- nf1}
   if(length(weight) > nt){weight <- weight[1:nt]}
   if(length(weight) < nt){weight <- c(weight,rep(0, nt-length(weight)))}
   if(length(direction) > nt){direction <- direction[1:nt]}
   if(length(direction) < nt){direction <- c(direction, rep(1, nt-length(direction)))}
 
-  markertest <- c(nrow(marker) != ncol(geno.t), NA%in%marker[,2], marker[,1] != sort(marker[,1]))
-  datatry <- try(marker[,2]%*%marker[,2], silent=TRUE)
-  if(class(datatry)[1] == "try-error" | TRUE%in%markertest){
-    stop("Marker data error, please cheak your marker data. Or the number of marker does not match the genetype data.", call. = FALSE)
-  }
-
-  datatry <- try(npl*weight*direction*nprog*nsele*ngen*nrep, silent = TRUE)
-  if(class(datatry)[1] == "try-error" | NA%in%datatry){
-    stop("Argument error, please cheak your argument.", call. = FALSE)
-  }
-
   if(nprog*nf1 < nsele){
     stop("Argument error, 'nprog' too small or 'nsele' too large.", call. = FALSE)
   }
 
+  fit0 <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.t)
   phe1 <- phe.sd(phe.t)
   mu0 <- phe1[[2]]
   sd0 <- phe1[[3]]
-  phe2 <- phe1[[1]]
+  fit <- phe.sd(fit0)[[1]]
 
-  fit <- GBLUP.fit(phe = phe2, geno = geno.t)
-  row.names(fit) <- 1:nrow(fit)
+  row.names(fit) <- 1:nrow(fit0)
   K0 <- geno.t%*%t(geno.t)/ncol(geno.t)
   diag(K0) <- 1
   d0 <- det(K0)
@@ -137,7 +162,7 @@ simu.GEBVO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, weight 
 
   if(is.null(geno.c)){
     geno.c <- geno.t
-    p.c < -fit
+    p.c <- fit
   } else {
     datatry <- try(geno.t%*%t(geno.c), silent=TRUE)
     if(class(datatry)[1] == "try-error" | length(geno.c[geno.c != 1 & geno.c != 0 & geno.c != -1]) > 0){
@@ -156,19 +181,8 @@ simu.GEBVO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, weight 
     row.names(geno.c) <- row.names(p.c)
   } else {row.names(p.c) <- row.names(geno.c)}
 
-  p0 <- c()
-  direction0 <- direction > 0
-  k <- 1
-  while(length(p0) < n0){
-    for(ps in 1:nt){
-      p1 <- rownames(p.c)[order(p.c[,ps], decreasing = direction0[ps])[1:npl[ps]]]
-      p0 <- union(p0, p1)
-    }
-    npl[k] <- npl[k]+1
-    k <- k+1
-    if(k > nt){k <- 1}
-  }
-  p0 <- p0[1:n0]
+  inde <- p.c%*%weight
+  p0 <- rownames(inde)[order(inde, decreasing = TRUE)][1:npl]
 
   phe.m0 <- matrix(0, length(p0), nrow(p.c))
   for(i in 1:length(p0)){
@@ -176,7 +190,7 @@ simu.GEBVO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, weight 
   }
   phe.p0 <- phe.m0%*%p.c
   rownames(phe.p0) <- p0
-  geno.p0 <- geno.c[rownames(p.c)%in%p0,]
+  geno.p0 <- geno.c[rownames(p.c) %in% p0,]
 
   kp0 <- geno.p0%*%t(geno.p0)/ncol(geno.p0)
   diag(kp0) <- 1
@@ -185,10 +199,10 @@ simu.GEBVO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, weight 
   GEBVO.p0 <- cbind(1:nrow(phe.p0), phe.p0, geno.p0)
 
   gvalue.result <- list()
-  p.result <- matrix(0, nrep, n0)
+  p.result <- matrix(0, nrep, npl)
 
   for(m in 1:nrep){
-    nf1 <- choose(n0, 2)
+    nf1 <- choose(npl, 2)
     GEBVO.gvalue <- list()
     GEBVO.SNP <- list()
 
@@ -204,8 +218,8 @@ simu.GEBVO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, weight 
     GEBVO.SNP[[1]] <- GEBVO.p
     GEBVO.F1 <- list()
     k1 <- 1
-    for(i in 1:(n0-1)){
-      for(j in (i+1):n0){
+    for(i in 1:(npl-1)){
+      for(j in (i+1):npl){
         GEBVO.F1[[k1]] <- as.matrix(GEBVO.p[c(i, j),])
         k1 <- k1+1
       }

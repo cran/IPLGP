@@ -5,7 +5,11 @@
 \title{GD-O Strategy}
 \usage{
 simu.GDO(
-  phe.t,
+  t1,
+  t2,
+  t3,
+  t4,
+  t5,
   geno.t,
   marker,
   geno.c = NULL,
@@ -22,8 +26,20 @@ simu.GDO(
 )
 }
 \arguments{
-\item{phe.t}{matrix. An n*t matrix denotes the phenotypic values of the
-training population with n individuals and t target traits.}
+\item{t1}{vector. The phenotype of trait1. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t2}{vector. The phenotype of trait2. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t3}{vector. The phenotype of trait3. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t4}{vector. The phenotype of trait4. The missing value must be coded as NA.
+The length of all triat must be the same.}
+
+\item{t5}{vector. The phenotype of trait5. The missing value must be coded as NA.
+The length of all triat must be the same.}
 
 \item{geno.t}{matrix. An n*p matrix denotes the marker score matrix of the
 training population. The markers must be coded as 1, 0, or -1 for alleles
@@ -96,17 +112,25 @@ Identify parental lines based on GD-O strategy and simulate their offsprings.
 }
 \note{
 The function output.best and output.gain can be used to summarize the result.
+
+Due to restrictions on the use of the funtion 'mmer', if an unknown error occurs
+during use, please try to input the phenotype data as the format shown in the
+example.
 }
 \examples{
 # generate simulated data
 set.seed(2000)
-phe.test <- data.frame(trait1 = rnorm(10,30,10), trait2 = rnorm(10,10,5))
+t1 = rnorm(10,30,10)
+t2 = rnorm(10,10,5)
+t3 = NULL
+t4 = NULL
+t5 = NULL
 geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 
 # run and output
-result <- simu.GDO(phe.test, geno.test, marker.test, geno.candidate,
+result <- simu.GDO(t1, t2, t3, t4, t5, geno.test, marker.test, geno.candidate,
 nprog = 5, nsele = 10, ngen = 5, nrep = 5, cri = 250)
 result$suggested.subset
 }
@@ -115,7 +139,7 @@ Chung PY, Liao CT. 2020. Identification of superior parental lines for
 biparental crossing via genomic prediction. PLoS ONE 15(12):e0243159.
 }
 \seealso{
-\code{\link[IPLGP]{phe.sd}}
+\code{\link[sommer]{mmer}}
 \code{\link[IPLGP]{GBLUP.fit}}
 \code{\link[IPLGP]{GA.Dscore}}
 \code{\link[IPLGP]{simu.gamete}}

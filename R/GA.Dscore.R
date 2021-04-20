@@ -77,7 +77,7 @@ GA.Dscore <- function(K, size, keep=c(), n0 = size, mut = 3, cri = 10000, consol
 
   p <- p0
   if(length(keep) > 0){p <- p0[-keep]}
-  if(console != TRUE & console != FALSE){console <- FALSE}
+  if(!console[1] %in% c(0,1) | length(console) > 1){console <- FALSE}
 
   ans <- matrix(0, n0, size)
   for(i in 1:n0){

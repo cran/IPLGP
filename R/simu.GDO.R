@@ -2,8 +2,16 @@
 #'
 #' Identify parental lines based on GD-O strategy and simulate their offsprings.
 #'
-#' @param phe.t matrix. An n*t matrix denotes the phenotypic values of the
-#' training population with n individuals and t target traits.
+#' @param t1 vector. The phenotype of trait1. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t2 vector. The phenotype of trait2. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t3 vector. The phenotype of trait3. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t4 vector. The phenotype of trait4. The missing value must be coded as NA.
+#' The length of all triat must be the same.
+#' @param t5 vector. The phenotype of trait5. The missing value must be coded as NA.
+#' The length of all triat must be the same.
 #' @param geno.t matrix. An n*p matrix denotes the marker score matrix of the
 #' training population. The markers must be coded as 1, 0, or -1 for alleles
 #' AA, Aa, or aa. The missing value must have been already imputed.
@@ -61,6 +69,10 @@
 #' @note
 #' The function output.best and output.gain can be used to summarize the result.
 #'
+#' Due to restrictions on the use of the funtion 'mmer', if an unknown error occurs
+#' during use, please try to input the phenotype data as the format shown in the
+#' example.
+#'
 #' @export
 #'
 #' @references
@@ -69,7 +81,7 @@
 #' biparental crossing via genomic prediction. PLoS ONE 15(12):e0243159.
 #'
 #' @seealso
-#' \code{\link[IPLGP]{phe.sd}}
+#' \code{\link[sommer]{mmer}}
 #' \code{\link[IPLGP]{GBLUP.fit}}
 #' \code{\link[IPLGP]{GA.Dscore}}
 #' \code{\link[IPLGP]{simu.gamete}}
@@ -81,25 +93,40 @@
 #' @examples
 #' # generate simulated data
 #' set.seed(2000)
-#' phe.test <- data.frame(trait1 = rnorm(10,30,10), trait2 = rnorm(10,10,5))
+#' t1 = rnorm(10,30,10)
+#' t2 = rnorm(10,10,5)
+#' t3 = NULL
+#' t4 = NULL
+#' t5 = NULL
 #' geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 #' marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 #' geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 #'
 #' # run and output
-#' result <- simu.GDO(phe.test, geno.test, marker.test, geno.candidate,
+#' result <- simu.GDO(t1, t2, t3, t4, t5, geno.test, marker.test, geno.candidate,
 #' nprog = 5, nsele = 10, ngen = 5, nrep = 5, cri = 250)
 #' result$suggested.subset
-simu.GDO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, better.c = FALSE, weight = NULL,
-                   direction = NULL, nprog = 50, nsele = NULL, ngen = 10, nrep = 30, cri = 10000, console = TRUE){
+simu.GDO <- function(t1, t2, t3, t4, t5, geno.t, marker, geno.c = NULL, npl = NULL, better.c = FALSE, weight = NULL,
+                     direction = NULL, nprog = 50, nsele = NULL, ngen = 10, nrep = 30, cri = 10000, console = TRUE){
+
+  phetest <- c(length(t1), length(t2), length(t3), length(t4), length(t5))
+  if(length(table(phetest[phetest != 0])) != 1){
+    stop("Phenotype data error, please input number vectors with the same length.", call. = FALSE)
+  }
+
+  phe.t <- cbind(t1, t2, t3, t4, t5)
+  datatry <- try(phe.t*phe.t, silent=TRUE)
+  if(class(datatry)[1] == "try-error"){
+    stop("Phenotype data error, please input number vectors with the same length.", call. = FALSE)
+  }
 
   nt <- ncol(phe.t)
   ind.t <- nrow(phe.t)
   if(is.null(npl)){npl <- 4*nt}
   if(is.null(weight)){weight <- rep(1,nt)/nt}
   if(is.null(direction)){direction <- weight/abs(weight)}
-  if(console != TRUE & console != FALSE){console <- TRUE}
-  if(better.c != TRUE & better.c != FALSE){better.c <- FALSE}
+  if(!console[1] %in% c(0,1) | length(console) > 1){console <- TRUE}
+  if(!better.c[1] %in% c(0,1) | length(better.c) > 1){better.c <- FALSE}
 
   n0 <- npl
   nt <- ncol(phe.t)
@@ -125,13 +152,13 @@ simu.GDO <- function(phe.t, geno.t, marker, geno.c = NULL, npl = NULL, better.c 
     stop("Argument error, 'nprog' too small or 'nsele' too big.", call. = FALSE)
   }
 
+  fit0 <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.t)
   phe1 <- phe.sd(phe.t)
   mu0 <- phe1[[2]]
   sd0 <- phe1[[3]]
-  phe2 <- phe1[[1]]
+  fit <- phe.sd(fit0)[[1]]
 
-  fit <- GBLUP.fit(phe = phe2, geno = geno.t)
-  row.names(fit) <- 1:nrow(fit)
+  row.names(fit) <- 1:nrow(fit0)
   K0 <- geno.t%*%t(geno.t)/ncol(geno.t)
   diag(K0) <- 1
   d0 <- det(K0)
