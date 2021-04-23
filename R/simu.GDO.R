@@ -34,7 +34,7 @@
 #' traits in selection index. If weight is set to be NULL, the equal weight will
 #' be assigned to all the target traits.
 #' @param direction vector. A vector with length t indicates the selecting
-#' directions for target traits. The elements of direction are 1, or -1
+#' directions for target traits. The elements of direction are 1, or 0
 #' representing the rule that the larger the better; or the smaller the better.
 #' If direction is set to be NULL, the selecting direction will be the same as
 #' weight.
@@ -124,7 +124,7 @@ simu.GDO <- function(t1, t2, t3, t4, t5, geno.t, marker, geno.c = NULL, npl = NU
   ind.t <- nrow(phe.t)
   if(is.null(npl)){npl <- 4*nt}
   if(is.null(weight)){weight <- rep(1,nt)/nt}
-  if(is.null(direction)){direction <- weight/abs(weight)}
+  if(is.null(direction)){direction <- as.numeric(weight >= 0)}
   if(!console[1] %in% c(0,1) | length(console) > 1){console <- TRUE}
   if(!better.c[1] %in% c(0,1) | length(better.c) > 1){better.c <- FALSE}
 
@@ -147,6 +147,7 @@ simu.GDO <- function(t1, t2, t3, t4, t5, geno.t, marker, geno.c = NULL, npl = NU
   if(class(datatry)[1] == "try-error" | NA%in%datatry){
     stop("Argument error, please cheak your argument.", call. = FALSE)
   }
+  direction <- as.numeric(direction > 0)
 
   if(nprog*nf1 < nsele){
     stop("Argument error, 'nprog' too small or 'nsele' too big.", call. = FALSE)

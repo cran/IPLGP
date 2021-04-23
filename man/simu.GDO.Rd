@@ -69,7 +69,7 @@ traits in selection index. If weight is set to be NULL, the equal weight will
 be assigned to all the target traits.}
 
 \item{direction}{vector. A vector with length t indicates the selecting
-directions for target traits. The elements of direction are 1, or -1
+directions for target traits. The elements of direction are 1, or 0
 representing the rule that the larger the better; or the smaller the better.
 If direction is set to be NULL, the selecting direction will be the same as
 weight.}

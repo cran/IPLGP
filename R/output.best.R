@@ -91,7 +91,7 @@ output.best <- function(result, save.pdf =  FALSE){
       }
 
       for(k in 1:nt){
-        max.gvalue0[j, k] <- sort(max.gvalue[, k], decreasing =  direction0[k])[1]
+        max.gvalue0[j, k] <- sort(max.gvalue[, k], decreasing = direction0[k])[1]
       }
     }
     for(j in 3:(ngen+1)){
