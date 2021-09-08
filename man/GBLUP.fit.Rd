@@ -37,13 +37,18 @@ Built the muti-trait GBLUP model using the phenotypic and genotypic data of a
 training population by 'mmer' from R package 'sommer'. Then, output the fitted
 values of the training population.
 }
+\note{
+Due to restrictions on the use of the funtion 'mmer', if an unknown error occurs
+during use, please try to input the phenotype data as the format shown in the
+example.
+}
 \examples{
 # generate simulated data
-t1 = rnorm(50,30,10)
-t2 = rnorm(50,10,5)
-t3 = rnorm(50,20,20)
-t4 = NULL
-t5 = NULL
+t1 <- rnorm(50,30,10)
+t2 <- rnorm(50,10,5)
+t3 <- rnorm(50,20,20)
+t4 <- NULL
+t5 <- NULL
 
 # run with the marker score matrix
 geno.test <- matrix(sample(c(1, -1), 5000, replace = TRUE), 50, 100)

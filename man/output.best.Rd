@@ -31,17 +31,19 @@ shown in the console.
 \examples{
 # generate simulated data
 set.seed(2000)
-t1 = rnorm(10, 30, 10)
-t2 = rnorm(10, 10, 5)
-t3 = NULL
-t4 = NULL
-t5 = NULL
+t1 <- rnorm(10,30,10)
+t2 <- rnorm(10,10,5)
+t3 <- NULL
+t4 <- NULL
+t5 <- NULL
 geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
-marker.test <- cbind(rep(1:2, each = 10), rep(seq(0, 90, 10), 2))
-geno.candidate <- matrix(sample(c(1, -1), 20, replace = TRUE), 20, 20)
+marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
+fit <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
+
+geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 
 # run
-result <- simu.GEBVO(t1, t2, t3, t4, t5, geno.test, marker.test, geno.candidate,
+result <- simu.GEBVO(fit, geno.test, marker.test, geno.candidate,
 nprog = 5, nsele = 10, ngen = 5, nrep = 5)
 
 # summary for the best individuals

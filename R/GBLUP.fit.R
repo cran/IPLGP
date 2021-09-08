@@ -23,6 +23,11 @@
 #' @return
 #' The fitted values of the training population.
 #'
+#' @note
+#' Due to restrictions on the use of the funtion 'mmer', if an unknown error occurs
+#' during use, please try to input the phenotype data as the format shown in the
+#' example.
+#'
 #' @export
 #'
 #' @seealso
@@ -38,11 +43,11 @@
 #'
 #' @examples
 #' # generate simulated data
-#' t1 = rnorm(50,30,10)
-#' t2 = rnorm(50,10,5)
-#' t3 = rnorm(50,20,20)
-#' t4 = NULL
-#' t5 = NULL
+#' t1 <- rnorm(50,30,10)
+#' t2 <- rnorm(50,10,5)
+#' t3 <- rnorm(50,20,20)
+#' t4 <- NULL
+#' t5 <- NULL
 #'
 #' # run with the marker score matrix
 #' geno.test <- matrix(sample(c(1, -1), 5000, replace = TRUE), 50, 100)
@@ -129,14 +134,11 @@ GBLUP.fit <- function(t1, t2, t3, t4, t5, geno = NULL, K = NULL){
   }
 
   u0 <- fit$U$`u:id`
-  fitted.value <- c()
-  for(i in 1:length(u0)){
-    fitted.value <- cbind(fitted.value,u0[[i]])
-  }
+  fitted.value <- matrix(unlist(u0), ncol = nt)
   colnames(fitted.value) <- names(u0)
 
   fitted.value <- fitted.value+matrix(fit$fitted[1,], nrow(fitted.value), nt, byrow = TRUE)
-  fitted.value <- fitted.value[order(as.numeric(rownames((fitted.value)))),]
+  fitted.value <- fitted.value[order(as.numeric(names((u0[[1]])))),]
   if(!is.null(row.names(phe))){row.names(fitted.value) <- row.names(phe)}
   fitted.value <- as.matrix(fitted.value)
 
