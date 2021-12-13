@@ -31,12 +31,13 @@ t5 <- NULL
 geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 fit <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
+fitvalue <- fit$fitted.value
 
 geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 
 # run
-result <- simu.GEBVO(fit, geno.test, marker.test, geno.candidate,
-nprog = 5, nsele = 10, ngen = 5, nrep = 5)
+result <- simu.GEBVO(fitvalue, geno.t = geno.test, marker = marker.test,
+geno.c = geno.candidate, nprog = 5, nsele = 10, ngen = 5, nrep = 5)
 
 # summary for genetic gain
 output <- output.gain(result)

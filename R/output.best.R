@@ -43,12 +43,13 @@
 #' geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 #' marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 #' fit <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
+#' fitvalue <- fit$fitted.value
 #'
 #' geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 #'
 #' # run
-#' result <- simu.GEBVO(fit, geno.test, marker.test, geno.candidate,
-#' nprog = 5, nsele = 10, ngen = 5, nrep = 5)
+#' result <- simu.GEBVO(fitvalue, geno.t = geno.test, marker = marker.test,
+#' geno.c = geno.candidate, nprog = 5, nsele = 10, ngen = 5, nrep = 5)
 #'
 #' # summary for the best individuals
 #' output <- output.best(result)
@@ -68,7 +69,6 @@ output.best <- function(result, save.pdf =  FALSE){
   method <- result$method
   weight <- result$weight
   direction <- result$direction
-  direction0 <- direction > 0
   mu <- result$mu
   sd <- result$sd
   nrep <- length(GEBV)
@@ -84,7 +84,7 @@ output.best <- function(result, save.pdf =  FALSE){
   GEBV.max <- list()
   for(i in 1:nrep){
     max.gvalue0 <- matrix(0, ngen+1, nt)
-    for(j in 1:2){
+    for(j in 1:(ngen+1)){
       max.gvalue <- GEBV[[i]][[j]]
       datatry <- try(max.gvalue*max.gvalue, silent =  TRUE)
       if(class(datatry)[1] == "try-error" | NA %in% max.gvalue){
@@ -92,14 +92,22 @@ output.best <- function(result, save.pdf =  FALSE){
              call. = FALSE)
       }
 
+      sele <- c()
       for(k in 1:nt){
-        max.gvalue0[j, k] <- sort(max.gvalue[, k], decreasing = direction0[k])[1]
+        if(direction[k] == Inf){
+          sele0 <- max.gvalue[,k]/sd[k]*weight[k]
+        } else if (direction[k] == -Inf){
+          sele0 <- max.gvalue[,k]/sd[k]*weight[k]
+          sele0 <- -sele0
+        } else {
+          sele0 <- ((max.gvalue[,k]-direction[k])/sd[k])*weight[k]
+          sele0 <- -abs(sele0)
+        }
+        sele <- cbind(sele, sele0)
       }
-    }
-    for(j in 3:(ngen+1)){
-      max.gvalue <- GEBV[[i]][[j]]
-      index <- max.gvalue%*%matrix(weight/sd, nt, 1)
-      max.gvalue0[j, ] <- max.gvalue[which.max(index),]
+      sele <- apply(sele, 1, sum)
+
+      max.gvalue0[j,] <- max.gvalue[which.max(sele),]
     }
     GEBV.max[[i]] <- max.gvalue0
   }
@@ -115,7 +123,7 @@ output.best <- function(result, save.pdf =  FALSE){
 
   GEBV.all <- list()
 
-  if(save.pdf){grDevices::pdf("MTGS.GEBVplot.pdf", width = 8, height = 5)}
+  if(save.pdf){grDevices::pdf("IPLGP.GEBVplot.pdf", width = 8, height = 5)}
   for(i in 1:nt){
     GEBV.all0 <- data.frame(
       generation <- 0:ngen,

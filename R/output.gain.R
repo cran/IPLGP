@@ -35,12 +35,13 @@
 #' geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 #' marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 #' fit <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
+#' fitvalue <- fit$fitted.value
 #'
 #' geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 #'
 #' # run
-#' result <- simu.GEBVO(fit, geno.test, marker.test, geno.candidate,
-#' nprog = 5, nsele = 10, ngen = 5, nrep = 5)
+#' result <- simu.GEBVO(fitvalue, geno.t = geno.test, marker = marker.test,
+#' geno.c = geno.candidate, nprog = 5, nsele = 10, ngen = 5, nrep = 5)
 #'
 #' # summary for genetic gain
 #' output <- output.gain(result)
@@ -59,7 +60,6 @@ output.gain <- function(result){
   method <- result$method
   weight <- result$weight
   direction <- result$direction
-  direction0 <- direction > 0
   mu <- result$mu
   sd <- result$sd
   nrep <- length(GEBV)
@@ -110,7 +110,17 @@ output.gain <- function(result){
     colnames(GEBV.all0) <- c("generation", "mean", "standard deviation")
 
     gain[i, c(2, 3)] <- GEBV.all0[c(1, (ngen+1)), 2]
-    gain[i, 4] <- gain[i, 3]-gain[i, 2]
+    if(abs(direction[i]) == Inf){
+      gain[i, 4] <- gain[i, 3]-gain[i, 2]
+    } else {
+      dir0 <- direction[i]
+      g0 <- c()
+      for(j in 1:nrep){
+        g0[j] <- abs(dir0-GEBV.mean.ave[[i]][1, j])-abs(dir0-GEBV.mean.ave[[i]][ngen+1, j])
+      }
+      gain[i, 4] <- mean(g0)
+    }
+
     GEBV.all0[, 1] <- c("P", paste("F", 1:ngen, sep = ""))
     GEBV.all[[i+1]] <- GEBV.all0
   }

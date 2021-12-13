@@ -2,16 +2,19 @@
 % Please edit documentation in R/simu.GEBVO.R
 \name{simu.GEBVO}
 \alias{simu.GEBVO}
-\title{GEBV-O Strategy}
+\title{Simulate Progeny with GEBV-O Strategy}
 \usage{
 simu.GEBVO(
-  fitted.t,
+  fittedA.t,
+  fittedD.t = NULL,
+  fittedmu.t = NULL,
   geno.t,
   marker,
   geno.c = NULL,
   npl = NULL,
   weight = NULL,
   direction = NULL,
+  outcross = FALSE,
   nprog = 50,
   nsele = NULL,
   ngen = 10,
@@ -20,8 +23,18 @@ simu.GEBVO(
 )
 }
 \arguments{
-\item{fitted.t}{matrix. An n*t matrix denotes the fitted values of each traits
-of the training population. The missing value must have been already imputed.}
+\item{fittedA.t}{matrix. An n*t matrix denotes the fitted values of each traits
+of the training population. The missing value must have been already imputed.
+If outcross is set to be TRUE, this argument must be the additive effect part
+of fitted values.}
+
+\item{fittedD.t}{matrix. An n*t matrix denotes the dominance effect part of
+fitted values when outcross is set to be TRUE. The missing value must have been
+already imputed.}
+
+\item{fittedmu.t}{numeric or vector. A p*1 vector denote the average value of
+fitted values when outcross is set to be TRUE. The length must be the same as
+the number of traits.}
 
 \item{geno.t}{matrix. An n*p matrix denotes the marker score matrix of the
 training population. The markers must be coded as 1, 0, or -1 for alleles
@@ -32,10 +45,10 @@ number to which a marker belongs; and second column indicates the position of
 the marker in centi-Morgan (cM).}
 
 \item{geno.c}{matrix. An nc*p matrix denotes the marker score matrix of the
-candidate population with nc individuals and p markers. The markers must be
-coded as 1, 0, or -1 for alleles AA, Aa, or aa. The missing value must have
-been already imputed. If geno.c is set to be NULL, the candidate population
-is exactly the training population.}
+candidate population with nc individuals and p markers. It should be pure lines
+and markers must be coded as 1, or -1 for alleles AA, or aa. The missing value
+must have been already imputed. If geno.c is set to be NULL, the candidate
+population is exactly the training population.}
 
 \item{npl}{integer. An integer indicates how many parental lines with the
 top GEBV index will be chosen from each trait. If npl is set to be NULL, there
@@ -43,13 +56,19 @@ will be be 4 times the number of traits.}
 
 \item{weight}{vector. A vector with length t indicates the weights of target
 traits in selection index. If weight is set to be NULL, the equal weight will
-be assigned to all the target traits.}
+be assigned to all the target traits. The weights should be a positive number.}
 
 \item{direction}{vector. A vector with length t indicates the selecting
-directions for target traits. The elements of direction are 1, or 0
+directions for target traits. The elements of direction are Inf, or -inf
 representing the rule that the larger the better; or the smaller the better.
-If direction is set to be NULL, the selecting direction will be the same as
-weight.}
+Or if the element is a number, it will select the individuals with the trait
+value close to the number. If direction is set to be NULL, the selecting
+direction will be the larger the better for all trait.}
+
+\item{outcross}{logical. A logical variable, if outcross is set to be TRUE,
+the crop is regarded as an outcross crop. The kinship matrix of dominance
+effects are also considered in the model, and crossing and selection will be
+performed in F1 generation. The detail can be seen in the references.}
 
 \item{nprog}{integer. An integer indicates the number of progenies which
 will be produced for each of the best individuals at every generation.}
@@ -100,11 +119,12 @@ t5 <- NULL
 geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 fit <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
+fitvalue <- fit$fitted.value
 
 geno.candidate <- matrix(sample(c(1,-1), 300, replace = TRUE), 15, 20)
 
 # run and output
-result <- simu.GEBVO(fit, geno.t = geno.test, marker = marker.test,
+result <- simu.GEBVO(fitvalue, geno.t = geno.test, marker = marker.test,
 geno.c = geno.candidate, nprog = 5, nsele = 10, ngen = 5, nrep = 5)
 result$suggested.subset
 
@@ -122,7 +142,6 @@ marker.test <- cbind(rep(1:2, each=10), rep(seq(0, 90, 10), 2))
 rownames(geno.test) <- 1:nrow(geno.test)
 id <- rownames(geno.test)
 K0 <- geno.test\%*\%t(geno.test)/ncol(geno.test)
-diag(K0) <- 1
 
 dat <- data.frame(id, phe)
 fit0 <- sommer::mmer(cbind(t1, t2)~1,
@@ -136,7 +155,7 @@ fit <- matrix(unlist(u0), ncol = nt)
 colnames(fit) <- names(u0)
 
 fit <- fit+matrix(fit0$fitted[1,], nrow(fit), nt, byrow = TRUE)
-fit <- fit[order(as.numeric(names((u0[[1]])))),]
+fitvalue <- fit[order(as.numeric(names((u0[[1]])))),]
 }
 }
 \references{

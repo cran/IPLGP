@@ -2,6 +2,7 @@
 
 export(GA.Dscore)
 export(GBLUP.fit)
+export(geno.d)
 export(output.best)
 export(output.gain)
 export(phe.sd)

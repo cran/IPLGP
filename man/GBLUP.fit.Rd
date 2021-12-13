@@ -4,7 +4,7 @@
 \alias{GBLUP.fit}
 \title{Muti-trait GBLUP Model}
 \usage{
-GBLUP.fit(t1, t2, t3, t4, t5, geno = NULL, K = NULL)
+GBLUP.fit(t1, t2, t3, t4, t5, geno = NULL, K = NULL, outcross = FALSE)
 }
 \arguments{
 \item{t1}{vector. The phenotype of trait1. The missing value must be coded as NA.
@@ -28,9 +28,17 @@ Aa, or aa. The missing value must have been already imputed.}
 
 \item{K}{matrix. An n*n matrix denotes the genomic relationship matrix of the
 training population if geno is set to be NULL.}
+
+\item{outcross}{logical. A logical variable, if outcross is set to be TRUE,
+the crop is regarded as an outcross crop. The kinship matrix of dominance
+effects are also considered in the model. The geno data must be given when
+outcross being TRUE.}
 }
 \value{
-The fitted values of the training population.
+\item{fitted.value}{The fitted values.}
+\item{fitted.A}{The additive effect part of fitted values.}
+\item{fitted.D}{The dominance effect part of fitted values.}
+\item{mu}{The average value of fitted values.}
 }
 \description{
 Built the muti-trait GBLUP model using the phenotypic and genotypic data of a
@@ -53,12 +61,12 @@ t5 <- NULL
 # run with the marker score matrix
 geno.test <- matrix(sample(c(1, -1), 5000, replace = TRUE), 50, 100)
 result1 <- GBLUP.fit(t1, t2, t3, t4, t5, geno = geno.test)
-result1
+result1$fitted.value
 
 # run with the genomic relationship matrix
 K.test <- geno.test\%*\%t(geno.test)/ncol(geno.test)
 result2 <- GBLUP.fit(t1, t2, t3, t4, t5, K = K.test)
-result2
+result2$fitted.value
 }
 \references{
 Habier D, Fernando RL, Dekkers JCM. 2007. The impact of genetic relationship
