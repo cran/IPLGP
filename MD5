@@ -1,4 +1,4 @@
-65966ee956b9ed5741f071742f2734e0 *DESCRIPTION
+a27ecfe0fd5bb4fba8623803b7343c19 *DESCRIPTION
 94cf7d2e7e6a3fee19a9e5a1624ba712 *NAMESPACE
 ced09f18115c5d7d014eeaa6b948caa7 *R/GA.Dscore.R
 97faffa2c0d320c8fe0338f7e980ddad *R/GBLUP.fit.R
@@ -9,7 +9,7 @@ a88c87a498412f991f01f8da1a597ac5 *R/output.gain.R
 30e166734a9d68397e7beabad41b1251 *R/simu.GDO.R
 38ffdec6bdc6210f8a3037a6c307fc03 *R/simu.GEBVGD.R
 afb77a358b0a4e16f8c13e190d7b317f *R/simu.GEBVO.R
-769989917acbd940e8ebe870177ac775 *R/simu.gamete.R
+61b8a8e1c270703d666d41f8cf7489c0 *R/simu.gamete.R
 3da873dcc15c2405b8eca639d3826d29 *man/GA.Dscore.Rd
 60b1c6b98eeed7c4336b41dadf6ae175 *man/GBLUP.fit.Rd
 d6aaaaeb1131f2b5b1569a8f3aec2a7b *man/geno.d.Rd
@@ -19,4 +19,4 @@ b149d406997f990d722359b52bcce43a *man/phe.sd.Rd
 5367f85993d94b16a8629489e334ac63 *man/simu.GDO.Rd
 7a16f45f863ca9a19234d889348163ef *man/simu.GEBVGD.Rd
 04dee27c794eec89f7e06a1ad87fc010 *man/simu.GEBVO.Rd
-2136a779f8fe5e8fc75cb096880b4c11 *man/simu.gamete.Rd
+617cf6e7f314cfae2909d989fac30184 *man/simu.gamete.Rd
