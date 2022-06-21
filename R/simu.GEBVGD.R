@@ -134,8 +134,8 @@
 #'
 #' dat <- data.frame(id, phe)
 #' fit0 <- sommer::mmer(cbind(t1, t2)~1,
-#'       random = ~sommer::vs(id, Gu = K0, Gtc = sommer::unsm(nt)),
-#'       rcov = ~sommer::vs(units, Gtc = sommer::unsm(nt)),
+#'       random = ~sommer::vsr(id, Gu = K0, Gtc = sommer::unsm(nt)),
+#'       rcov = ~sommer::vsr(units, Gtc = sommer::unsm(nt)),
 #'       data = dat,
 #'       tolparinv = 0.01)
 #'

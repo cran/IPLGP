@@ -1,7 +1,7 @@
 Package: IPLGP
 Type: Package
 Title: Identification of Parental Lines via Genomic Prediction
-Version: 2.0.1
+Version: 2.0.2
 Authors@R: c(
     person("Ping-Yuan", "Chung", email = "r06621204@ntu.edu.tw", role = "cre"),
     person("Chen-Tuo", "Liao", email = "ctliao@ntu.edu.tw", role = "aut"))
@@ -23,9 +23,9 @@ License: GPL-2
 Encoding: UTF-8
 RoxygenNote: 7.2.0
 NeedsCompilation: no
-Packaged: 2022-06-10 12:03:02 UTC; pingyuan
+Packaged: 2022-06-21 08:24:20 UTC; pingyuan
 Author: Ping-Yuan Chung [cre],
   Chen-Tuo Liao [aut]
 Maintainer: Ping-Yuan Chung <r06621204@ntu.edu.tw>
 Repository: CRAN
-Date/Publication: 2022-06-10 12:20:02 UTC
+Date/Publication: 2022-06-21 09:10:02 UTC
