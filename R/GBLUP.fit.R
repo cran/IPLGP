@@ -152,12 +152,12 @@ GBLUP.fit <- function(t1, t2, t3, t4, t5, geno = NULL, K = NULL, outcross = FALS
 
     tol <- 10^-5
     while(length(fit) == 0){
-      cat("Try bigger tolparinv. tolparinv:", tol, "\n")
+      cat("Try bigger tolParInv. tolParInv:", tol, "\n")
       fit <- sommer::mmer(t1~1,
                           random = r.variable,
                           rcov = ~sommer::vsr(units, Gtc = sommer::unsm(nt)),
                           data = dat,
-                          tolparinv = tol)
+                          tolParInv = tol)
       tol <- tol*10
     }
   } else {
@@ -168,12 +168,12 @@ GBLUP.fit <- function(t1, t2, t3, t4, t5, geno = NULL, K = NULL, outcross = FALS
 
     tol <- 10^-5
     while(length(fit) == 0){
-      cat("Try bigger tolparinv. tolparinv:", tol, "\n")
+      cat("Try bigger tolParInv. tolParInv:", tol, "\n")
       fit <- sommer::mmer(cbind(t1, t2, t3, t4, t5)~1,
                           random = r.variable,
                           rcov = ~sommer::vsr(units, Gtc = sommer::unsm(nt)),
                           data = dat,
-                          tolparinv = tol)
+                          tolParInv = tol)
       tol <- tol*10
     }
   }
