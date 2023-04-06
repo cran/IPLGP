@@ -89,7 +89,7 @@
 #'
 #' @examples
 #' # generate simulated data
-#' set.seed(8000)
+#' set.seed(6000)
 #' geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 #' t1 <- 5*geno.test[,3]+3*geno.test[,7]-geno.test[,11]+rnorm(10,30,10)
 #' t2 <- 3*geno.test[,3]+geno.test[,12]-2*geno.test[,18]+rnorm(10,10,5)
@@ -111,7 +111,7 @@
 #'
 #' # other method: use mmer to obtain the fitted value
 #' \dontrun{
-#' set.seed(2000)
+#' set.seed(6000)
 #' geno.test <- matrix(sample(c(1, -1), 200, replace = TRUE), 10, 20)
 #' t1 <- 5*geno.test[,3]+3*geno.test[,7]-geno.test[,11]+rnorm(10,30,10)
 #' t2 <- 3*geno.test[,3]+geno.test[,12]-2*geno.test[,18]+rnorm(10,10,5)
