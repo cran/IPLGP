@@ -37,7 +37,7 @@
 #' traits in selection index. If weight is set to be NULL, the equal weight will
 #' be assigned to all the target traits. The weights should be a positive number.
 #' @param direction vector. A vector with length t indicates the selecting
-#' directions for target traits. The elements of direction are Inf, or -inf
+#' directions for target traits. The elements of direction are Inf, or -Inf
 #' representing the rule that the larger the better; or the smaller the better.
 #' Or if the element is a number, it will select the individuals with the trait
 #' value close to the number. If direction is set to be NULL, the selecting
@@ -315,6 +315,10 @@ simu.GEBVGD <- function(fittedA.t, fittedD.t = NULL, fittedmu.t =NULL, geno.t, m
     npc <- nrow(p.c)-ind.t
     p.c <- cbind(matrix(0, npc, ind.t), diag(npc))%*%p.c
     p.cD <- cbind(matrix(0, npc, ind.t), diag(npc))%*%p.cD
+  }
+
+  if(length(geno.c[geno.c != 1 & geno.c != -1]) > 0){
+    stop("Genotype data of candidate population error, the candidate population should be pure lines.", call. = FALSE)
   }
 
   if(is.null(row.names(geno.c))){
